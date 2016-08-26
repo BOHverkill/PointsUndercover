@@ -1,3 +1,34 @@
 <resources>
     <string name="app_name" translatable="false">Points Undercover</string>
+    <string name="round_time">Round Time</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancle</string>
+    <string name="countdown_header">Set Countdown</string>
+    <string name="countdown_image_desc">Countdown Icon</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="number_picker_separator" translatable="false">:</string>
+    <string name="header_user_list">Users</string>
+    <string name="user_name">Username</string>
+    <string name="delete_user">Delete User</string>
+    <string name="action_start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="resume">Resume</string>
+    <string name="pick_agent">Pick the Agent</string>
+    <string name="action_clear_session">Clear Session</string>
+    <string name="stopped">Stopped</string>
+    <string name="agent_header">Set the Agent for this round</string>
+    <string name="agent_image_desc">Agent Icon</string>
+    <string name="right_pick_header">Did the Group elect the Agent?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="notification_content">Time ran out!</string>
+    <string name="points">Points:</string>
+    <string name="plus_points">Plus points this round:</string>
+    <string name="stop_header">Who stopped the round?</string>
+    <string name="pick_stop">Pick the person/user who stopped the round</string>
+    <string name="agent">Agent</string>
+    <string name="group">Group</string>
+    <string name="agent_stop_header">Did the agent pick the right place?</string>
+    <string name="stop_image_desc">Stop Icon</string>
 </resources>

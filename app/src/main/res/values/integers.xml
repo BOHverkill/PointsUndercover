@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="countdown_default_minutes">8</integer>
+    <integer name="countdown_default_seconds">0</integer>
+    <integer name="user_default_min_list_size">3</integer>
+    <integer name="user_max_list_size">8</integer>
+</resources>
