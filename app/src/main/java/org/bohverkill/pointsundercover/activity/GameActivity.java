@@ -12,7 +12,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -44,6 +43,7 @@ public class GameActivity extends AppCompatActivity {
     Button stopButton;
 
     private CountDownTimer countdownTimer;
+    private Countdown countdown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +62,21 @@ public class GameActivity extends AppCompatActivity {
         mNotificationManager.cancel(GameActivity.NOTIFICATION_ID);
 
         Persistence persistence = new Persistence(this);
-        Countdown countdown = persistence.getCountdown("countdown");
-        this.countdownView.setText(countdown.toString());
-        this.countdownTimer = new CountDownTimer(countdown.toMillis(), 1000) {
+        this.countdown = persistence.getCountdown("countdown");
+        this.startCountdown();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (this.countdownTimer.isCancelled()) {
+            this.startCountdown();
+        }
+    }
+
+    private void startCountdown() {
+        this.countdownView.setText(this.countdown.toString());
+        this.countdownTimer = new CountDownTimer(this.countdown.toMillis(), 1000) {
 
             @Override
             public void onTick(long millisUntilFinished) {
@@ -94,6 +106,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void onStopOrFinish(boolean stopped) {
+        this.countdownTimer.pause();
         this.countdownTimer.cancel();
         Intent intent = new Intent(this, PointsActivity.class);
         intent.putExtra(GameActivity.EXTRA_STOPPED, stopped);
@@ -106,8 +119,8 @@ public class GameActivity extends AppCompatActivity {
             builder.setAutoCancel(true);
             builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
             builder.setLights(Color.GREEN, 3000, 3000);
-            if  (ContextCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) == PackageManager.PERMISSION_GRANTED) {
-                builder.setVibrate(new long[] { 0, 1000, 1000, 1000, 1000, 1000, 1000 });
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) == PackageManager.PERMISSION_GRANTED) {
+                builder.setVibrate(new long[]{0, 1000, 1000, 1000, 1000, 1000, 1000});
             }
 //            // notify the user that the time run out
 //            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
