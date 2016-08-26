@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_start"
+        android:icon="@drawable/ic_play_arrow_white_48dp"
+        android:title="@string/action_start"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_clear_session"
+        android:title="@string/action_clear_session"
+        app:showAsAction="never" />
+
+</menu>
