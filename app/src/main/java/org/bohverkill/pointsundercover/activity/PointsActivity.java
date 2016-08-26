@@ -218,8 +218,8 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         for (User u: this.users) {
             u.setPlusPoints(0);
         }

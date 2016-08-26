@@ -118,6 +118,14 @@ public abstract class CountDownTimer {
     }
 
     /**
+     * Returns the current state of the countdown.
+     * @return if the countdown is cancelled.
+     */
+    public final boolean isCancelled() {
+        return this.mCancelled;
+    }
+
+    /**
      * Start the countdown.
      */
     public synchronized final CountDownTimer start() {
