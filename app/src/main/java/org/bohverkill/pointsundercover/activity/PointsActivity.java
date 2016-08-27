@@ -121,7 +121,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
 
     @Override
     public void onAgentPicked(int index) {
-        //TODO implement me
         this.agent = this.users.get(index);
         Util.setMultilineTextInTextView(this.agentText, getResources().getString(R.string.agent_header), this.agent.toString());
         this.calculatePoints();
@@ -129,7 +128,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
 
     @Override
     public void onRightPickPicked(boolean rightGroupPick, int text) {
-        //TODO implement me as well
         this.rightGroupPick = rightGroupPick;
         Util.setMultilineTextInTextView(this.rightPickText, getResources().getString(R.string.right_pick_header), getResources().getString(text));
         this.calculatePoints();
@@ -138,7 +136,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
 
     @Override
     public void onStopPicked(int index) {
-        //TODO implement me as well
         this.stop = this.users.get(index);
         Util.setMultilineTextInTextView(this.stopText, getResources().getString(R.string.stop_header), this.stop.toString());
         this.calculatePoints();
@@ -146,7 +143,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
 
     @Override
     public void onAgentStopPicked(boolean rightAgentPick, int text) {
-        //TODO implement me as well
         this.rightAgnetPick = rightAgentPick;
         Util.setMultilineTextInTextView(this.agentStopText, getResources().getString(R.string.agent_stop_header), getResources().getString(text));
         this.calculatePoints();
@@ -165,7 +161,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
             }
         }
         if (this.stopped) {
-            //TODO implement me
             if (this.stop != null && this.stop.equals(this.agent)) {
                 if (this.rightAgnetPick) {
                     agentPlus = 4;
@@ -188,7 +183,6 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
                 }
             } else return;
         } else {
-            //TODO implement me
             if (this.rightGroupPick) {
                 agentPlus = 0;
                 otherPlus = 1;
@@ -206,7 +200,7 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
             } else {
                 if (stopCallerPlus != 0 && u.equals(this.stop)) {
                     u.setPlusPoints(otherPlus+stopCallerPlus);
-                    u.setPoints(u.getPoints()+otherPlus);
+                    u.setPoints(u.getPoints()+otherPlus+stopCallerPlus);
                 } else {
                     u.setPlusPoints(otherPlus);
                     u.setPoints(u.getPoints() + otherPlus);
