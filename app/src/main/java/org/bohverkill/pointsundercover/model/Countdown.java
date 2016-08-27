@@ -1,8 +1,9 @@
 package org.bohverkill.pointsundercover.model;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class Countdown {
+public class Countdown implements Serializable {
 
     public final static DecimalFormat COUNTDOWN_FORMATTER = new DecimalFormat("00");
     private int minutes;
