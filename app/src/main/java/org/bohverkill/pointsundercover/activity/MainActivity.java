@@ -9,7 +9,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -79,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
                         Bundle args = new Bundle();
                         args.putInt("position", position);
                         userEditDialog.setArguments(args);
-                        Log.d("Position", "onItemClick: " + position);
                         userEditDialog.show(getSupportFragmentManager(), "UserEdit");
                     }
 
@@ -109,11 +107,7 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
         User u = new User("User" + this.userCounter);
         this.users.add(u);
         this.userAdapter.notifyItemInserted(this.users.indexOf(u));
-        if (this.users.size() >= getResources().getInteger(R.integer.user_max_list_size)) {
-            this.floatingActionButton.hide();
-        } else {
-            this.floatingActionButton.show();
-        }
+        this.enableFAB(!(this.users.size() >= getResources().getInteger(R.integer.user_max_list_size)));
     }
 
     @Override
@@ -137,11 +131,7 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
     public void onDeleteUser(int position) {
         this.users.remove(position);
         this.userAdapter.notifyItemRemoved(position);
-        if (this.users.size() < getResources().getInteger(R.integer.user_max_list_size)) {
-            this.floatingActionButton.show();
-        } else {
-            this.floatingActionButton.hide();
-        }
+        this.enableFAB(this.users.size() < getResources().getInteger(R.integer.user_max_list_size));
     }
 
     @Override
@@ -185,8 +175,8 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         this.saveSettings();
     }
 
@@ -203,11 +193,7 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
         //if (this.userAdapter != null) this.userAdapter.notifyDataSetChanged();
         this.userAdapter = new UserAdapter(this.users);
         this.userRecyclerView.setAdapter(this.userAdapter);
-        if (this.users.size() >= getResources().getInteger(R.integer.user_max_list_size)) {
-            this.floatingActionButton.hide();
-        } else {
-            this.floatingActionButton.show();
-        }
+        this.enableFAB(this.users.size() < getResources().getInteger(R.integer.user_max_list_size));
     }
 
     public void clearSettings() {
@@ -215,5 +201,14 @@ public class MainActivity extends AppCompatActivity implements CountdownPicker.C
         this.persistence.removeKey("users");
         this.restoreSettings();
         this.saveSettings();
+    }
+
+    public void enableFAB(boolean enabled) {
+        this.floatingActionButton.setEnabled(enabled);
+        if (enabled) {
+            this.floatingActionButton.show();
+        } else {
+            this.floatingActionButton.hide();
+        }
     }
 }
