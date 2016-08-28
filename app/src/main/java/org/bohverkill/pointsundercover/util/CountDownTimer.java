@@ -39,13 +39,15 @@ import android.os.SystemClock;
  * }.start();
  * </pre>
  * <p/>
- * The calls to {@link #onTick(long)} are synchronized to this object so that
- * one call to {@link #onTick(long)} won't ever occur before the previous
+ * The calls to {@link CountDownTimerListener#onTick(long)} are synchronized to this object so that
+ * one call to {@link CountDownTimerListener#onTick(long)} won't ever occur before the previous
  * callback is complete.  This is only relevant when the implementation of
- * {@link #onTick(long)} takes an amount of time to execute that is significant
+ * {@link CountDownTimerListener#onTick(long)} takes an amount of time to execute that is significant
  * compared to the countdown interval.
+ *
+ * @see CountDownTimerListener
  */
-public abstract class CountDownTimer {
+public class CountDownTimer {
 
     private static final int MSG = 1;
     /**
@@ -56,6 +58,7 @@ public abstract class CountDownTimer {
      * The interval in millis that the user receives callbacks
      */
     private final long mCountdownInterval;
+    private CountDownTimerListener mCallback;
     private long mStopTimeInFuture;
     private long mPauseTime;
     private boolean mCancelled = false;
@@ -71,13 +74,13 @@ public abstract class CountDownTimer {
                     final long millisLeft = mStopTimeInFuture - SystemClock.elapsedRealtime();
 
                     if (millisLeft <= 0) {
-                        onFinish();
+                        if (mCallback != null) mCallback.onFinish();
                     } else if (millisLeft < mCountdownInterval) {
                         // no tick, just delay until done
                         sendMessageDelayed(obtainMessage(MSG), millisLeft);
                     } else {
                         long lastTickStart = SystemClock.elapsedRealtime();
-                        onTick(millisLeft);
+                        if (mCallback != null) mCallback.onTick(millisLeft);
 
                         // take into account user's onTick taking time to execute
                         long delay = lastTickStart + mCountdownInterval - SystemClock.elapsedRealtime();
@@ -96,15 +99,26 @@ public abstract class CountDownTimer {
     };
 
     /**
+     * @param listener          The listener to call {@link CountDownTimerListener#onTick(long)} and {@link CountDownTimerListener#onFinish()}
      * @param millisInFuture    The number of millis in the future from the call
-     *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+     *                          to {@link #start()} until the countdown is done and {@link CountDownTimerListener#onFinish()}
      *                          is called.
      * @param countDownInterval The interval along the way to receive
-     *                          {@link #onTick(long)} callbacks.
+     *                          {@link CountDownTimerListener#onTick(long)} callbacks.
      */
-    public CountDownTimer(long millisInFuture, long countDownInterval) {
+    public CountDownTimer(CountDownTimerListener listener, long millisInFuture, long countDownInterval) {
+        mCallback = listener;
         mMillisInFuture = millisInFuture;
         mCountdownInterval = countDownInterval;
+    }
+
+    /**
+     * Sets the listener to call {@link CountDownTimerListener#onTick(long)} and {@link CountDownTimerListener#onFinish()}
+     *
+     * @param listener the new listener
+     */
+    public void setListener(CountDownTimerListener listener) {
+        mCallback = listener;
     }
 
     /**
@@ -118,11 +132,21 @@ public abstract class CountDownTimer {
     }
 
     /**
-     * Returns the current state of the countdown.
+     * Returns the current cancel state of the countdown.
+     *
      * @return if the countdown is cancelled.
      */
     public final boolean isCancelled() {
-        return this.mCancelled;
+        return mCancelled;
+    }
+
+    /**
+     * Returns the current pause state of the countdown.
+     *
+     * @return if the countdown is paused.
+     */
+    public final boolean isPaused() {
+        return mPaused;
     }
 
     /**
@@ -130,7 +154,7 @@ public abstract class CountDownTimer {
      */
     public synchronized final CountDownTimer start() {
         if (mMillisInFuture <= 0) {
-            onFinish();
+            if (mCallback != null) mCallback.onFinish();
             return this;
         }
         mStopTimeInFuture = SystemClock.elapsedRealtime() + mMillisInFuture;
@@ -159,15 +183,18 @@ public abstract class CountDownTimer {
         return mPauseTime;
     }
 
-    /**
-     * Callback fired on regular interval.
-     *
-     * @param millisUntilFinished The amount of time until finished.
-     */
-    public abstract void onTick(long millisUntilFinished);
+    public interface CountDownTimerListener {
+        /**
+         * Callback fired on regular interval.
+         *
+         * @param millisUntilFinished The amount of time until finished.
+         */
+        void onTick(long millisUntilFinished);
 
-    /**
-     * Callback fired when the time is up.
-     */
-    public abstract void onFinish();
+        /**
+         * Callback fired when the time is up.
+         */
+        void onFinish();
+
+    }
 }

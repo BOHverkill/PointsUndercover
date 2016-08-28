@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import org.bohverkill.pointsundercover.R;
+import org.bohverkill.pointsundercover.fragment.RetainedCountDownTimerFragment;
 import org.bohverkill.pointsundercover.model.Countdown;
 import org.bohverkill.pointsundercover.util.CountDownTimer;
 import org.bohverkill.pointsundercover.util.Persistence;
@@ -28,7 +30,7 @@ import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity implements CountDownTimer.CountDownTimerListener {
 
     public final static String EXTRA_STOPPED = "org.bohverkill.pointsundercover.stopped";
     public final static int NOTIFICATION_ID = 0;
@@ -43,6 +45,7 @@ public class GameActivity extends AppCompatActivity {
     Button stopButton;
 
     private CountDownTimer countdownTimer;
+    private RetainedCountDownTimerFragment timerFragment;
     private Countdown countdown;
 
     @Override
@@ -61,9 +64,20 @@ public class GameActivity extends AppCompatActivity {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(GameActivity.NOTIFICATION_ID);
 
+        // find the retained fragment on activity restarts
+        FragmentManager fm = getSupportFragmentManager();
+        this.timerFragment = (RetainedCountDownTimerFragment) fm.findFragmentByTag("timer");
         Persistence persistence = new Persistence(this);
         this.countdown = persistence.getCountdown("countdown");
-        this.startCountdown();
+        if (this.timerFragment == null) {
+            this.startCountdown();
+            this.timerFragment = new RetainedCountDownTimerFragment();
+            fm.beginTransaction().add(this.timerFragment, "timer").commit();
+            this.timerFragment.setData(this.countdownTimer);
+        } else {
+            this.countdownTimer = this.timerFragment.getTimer();
+            this.countdownTimer.setListener(this);
+        }
     }
 
     @Override
@@ -76,19 +90,7 @@ public class GameActivity extends AppCompatActivity {
 
     private void startCountdown() {
         this.countdownView.setText(this.countdown.toString());
-        this.countdownTimer = new CountDownTimer(this.countdown.toMillis(), 1000) {
-
-            @Override
-            public void onTick(long millisUntilFinished) {
-                double secondsUntilFinidhed = millisUntilFinished / 1000;
-                countdownView.setText(String.format(Locale.getDefault(), "%02d:%02d", (int) (secondsUntilFinidhed / 60), (int) (secondsUntilFinidhed % 60)));
-            }
-
-            @Override
-            public void onFinish() {
-                onStopOrFinish(false);
-            }
-        }.start();
+        this.countdownTimer = new CountDownTimer(this, this.countdown.toMillis(), 1000).start();
     }
 
     @OnCheckedChanged(R.id.pause_button)
@@ -140,8 +142,30 @@ public class GameActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            this.countdownTimer.cancel();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.countdownTimer.cancel();
+        if (!isFinishing()) {
+            this.countdownTimer.setListener(null);
+            this.timerFragment.setData(this.countdownTimer);
+        }
+    }
+
+    @Override
+    public void onTick(long millisUntilFinished) {
+        double secondsUntilFinished = millisUntilFinished / 1000;
+        this.countdownView.setText(String.format(Locale.getDefault(), "%02d:%02d", (int) (secondsUntilFinished / 60), (int) (secondsUntilFinished % 60)));
+    }
+
+    @Override
+    public void onFinish() {
+        this.onStopOrFinish(false);
     }
 }
