@@ -67,15 +67,12 @@ public class User implements Serializable {
 
         User user = (User) o;
 
-        return getPoints() == user.getPoints() && getPlusPoints() == user.getPlusPoints() && getName().equals(user.getName());
+        return getName().equals(user.getName());
 
     }
 
     @Override
     public int hashCode() {
-        int result = getName().hashCode();
-        result = 31 * result + getPoints();
-        result = 31 * result + getPlusPoints();
-        return result;
+        return getName().hashCode();
     }
 }
