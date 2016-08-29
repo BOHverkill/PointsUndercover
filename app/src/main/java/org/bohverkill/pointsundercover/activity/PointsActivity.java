@@ -2,6 +2,7 @@ package org.bohverkill.pointsundercover.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +18,7 @@ import org.bohverkill.pointsundercover.dialog.AgentPicker;
 import org.bohverkill.pointsundercover.dialog.AgentStopPicker;
 import org.bohverkill.pointsundercover.dialog.RightPickPicker;
 import org.bohverkill.pointsundercover.dialog.StopPicker;
+import org.bohverkill.pointsundercover.fragment.RetainedPointsFragment;
 import org.bohverkill.pointsundercover.model.User;
 import org.bohverkill.pointsundercover.util.Persistence;
 import org.bohverkill.pointsundercover.util.Util;
@@ -27,7 +29,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class PointsActivity extends AppCompatActivity implements AgentPicker.AgentPickerListener, RightPickPicker.RightPickListener, StopPicker.StopPickListener, AgentStopPicker.AgentStopPickListener{
+public class PointsActivity extends AppCompatActivity implements AgentPicker.AgentPickerListener, RightPickPicker.RightPickListener, StopPicker.StopPickListener, AgentStopPicker.AgentStopPickListener {
 
     @BindView(R.id.points_toolbar)
     Toolbar pointsToolbar;
@@ -56,10 +58,13 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
     private RecyclerView.LayoutManager pointsLayoutManager;
 
     private boolean stopped;
+
     private User agent;
     private boolean rightGroupPick;
     private User stop;
-    private boolean rightAgnetPick;
+    private boolean rightAgentPick;
+
+    private RetainedPointsFragment pointsFragment;
 
 
     @Override
@@ -92,7 +97,25 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
         this.pointsAdapter = new PointsAdapter(this.users, this);
         this.pointsRecyclerView.setAdapter(this.pointsAdapter);
 
-        this.switchStopVisibility(this.stopped);
+        this.switchVisibility(this.stopped);
+
+        // find the retained fragment on activity restarts
+        FragmentManager fm = getSupportFragmentManager();
+        this.pointsFragment = (RetainedPointsFragment) fm.findFragmentByTag("points");
+        if (this.pointsFragment == null) {
+            this.pointsFragment = new RetainedPointsFragment();
+            fm.beginTransaction().add(this.pointsFragment, "points").commit();
+        } else {
+            this.agent = this.pointsFragment.getAgent();
+            this.rightGroupPick = this.pointsFragment.getRightGroupPick();
+            this.stop = this.pointsFragment.getStop();
+            this.rightAgentPick = this.pointsFragment.getRightAgentPick();
+            this.agentText.setText(this.pointsFragment.getTextViewValue("agentText"));
+            this.rightPickText.setText(this.pointsFragment.getTextViewValue("rightPickText"));
+            this.stopText.setText(this.pointsFragment.getTextViewValue("stopText"));
+            this.agentStopText.setText(this.pointsFragment.getTextViewValue("agentStopText"));
+            this.calculatePoints();
+        }
     }
 
     @OnClick(R.id.agent_row)
@@ -143,7 +166,7 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
 
     @Override
     public void onAgentStopPicked(boolean rightAgentPick, int text) {
-        this.rightAgnetPick = rightAgentPick;
+        this.rightAgentPick = rightAgentPick;
         Util.setMultilineTextInTextView(this.agentStopText, getResources().getString(R.string.agent_stop_header), getResources().getString(text));
         this.calculatePoints();
     }
@@ -152,17 +175,17 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
         int agentPlus = 0;
         int otherPlus = 0;
         int stopCallerPlus = 0;
-        this.switchStopVisibility(this.stopped);
+        this.switchVisibility(this.stopped);
         if (this.agent == null) return;
-        for (User u: this.users) {
+        for (User u : this.users) {
             if (u.getPlusPoints() != 0) {
-                u.setPoints(u.getPoints()-u.getPlusPoints());
+                u.setPoints(u.getPoints() - u.getPlusPoints());
                 u.setPlusPoints(0);
             }
         }
         if (this.stopped) {
             if (this.stop != null && this.stop.equals(this.agent)) {
-                if (this.rightAgnetPick) {
+                if (this.rightAgentPick) {
                     agentPlus = 4;
                     otherPlus = 0;
                     stopCallerPlus = 0;
@@ -193,14 +216,14 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
                 stopCallerPlus = 0;
             }
         }
-        for(User u: this.users) {
+        for (User u : this.users) {
             if (u.equals(this.agent)) {
                 u.setPlusPoints(agentPlus);
-                u.setPoints(u.getPoints()+agentPlus);
+                u.setPoints(u.getPoints() + agentPlus);
             } else {
                 if (stopCallerPlus != 0 && u.equals(this.stop)) {
-                    u.setPlusPoints(otherPlus+stopCallerPlus);
-                    u.setPoints(u.getPoints()+otherPlus+stopCallerPlus);
+                    u.setPlusPoints(otherPlus + stopCallerPlus);
+                    u.setPoints(u.getPoints() + otherPlus + stopCallerPlus);
                 } else {
                     u.setPlusPoints(otherPlus);
                     u.setPoints(u.getPoints() + otherPlus);
@@ -212,12 +235,30 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        for (User u: this.users) {
-            u.setPlusPoints(0);
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            for (User u : this.users) {
+                u.setPlusPoints(0);
+            }
+            this.persistence.saveUsers("users", this.users);
         }
-        this.persistence.saveUsers("users", this.users);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!isFinishing()) {
+            this.pointsFragment.setAgent(this.agent);
+            this.pointsFragment.setRightGroupPick(this.rightGroupPick);
+            this.pointsFragment.setStop(this.stop);
+            this.pointsFragment.setRightAgentPick(this.rightAgentPick);
+            this.pointsFragment.setTextViewValue("agentText", this.agentText.getText());
+            this.pointsFragment.setTextViewValue("rightPickText", this.rightPickText.getText());
+            this.pointsFragment.setTextViewValue("stopText", this.stopText.getText());
+            this.pointsFragment.setTextViewValue("agentStopText", this.agentStopText.getText());
+        } else
+            this.pointsFragment = null;
     }
 
     private void setupTextViews() {
@@ -227,7 +268,7 @@ public class PointsActivity extends AppCompatActivity implements AgentPicker.Age
         Util.setMultilineTextInTextView(this.agentStopText, getResources().getString(R.string.agent_stop_header), "");
     }
 
-    private void switchStopVisibility(boolean stopped) {
+    private void switchVisibility(boolean stopped) {
         if (stopped) {
             this.agentRow.setVisibility(View.VISIBLE);
             this.stopRow.setVisibility(View.VISIBLE);
