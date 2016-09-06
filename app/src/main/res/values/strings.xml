@@ -31,4 +31,5 @@
     <string name="group">Group</string>
     <string name="agent_stop_header">Did the agent pick the right place?</string>
     <string name="stop_image_desc">Stop Icon</string>
+    <string name="points_user_list">Points</string>
 </resources>
