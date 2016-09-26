@@ -2,7 +2,7 @@
     <string name="app_name" translatable="false">Points Undercover</string>
     <string name="round_time">Round Time</string>
     <string name="ok">OK</string>
-    <string name="cancel">Cancle</string>
+    <string name="cancel">Cancel</string>
     <string name="countdown_header">Set Countdown</string>
     <string name="countdown_image_desc">Countdown Icon</string>
     <string name="title_activity_test">TestActivity</string>
